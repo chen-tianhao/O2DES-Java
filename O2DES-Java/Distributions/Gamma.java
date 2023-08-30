@@ -1,4 +1,4 @@
-﻿package O2DESNet.Distributions;
+﻿package Distributions;
 
 import java.time.Duration;
 import java.util.Random;

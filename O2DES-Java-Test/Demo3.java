@@ -5,18 +5,6 @@ import java.util.Random;
 // You need to import Logger and other necessary classes
 // from their respective Java packages
 
-abstract class Sandbox {
-    protected LocalDateTime clockTime;
-
-    protected void schedule(Runnable task, Duration delay) {
-        // Implement scheduling logic here
-    }
-
-    protected void advanceClock(Duration time) {
-        // Implement clock advancement logic here
-    }
-}
-
 public class MMcQueue extends Sandbox {
     private int seed;
     private double hourlyArrivalRate;

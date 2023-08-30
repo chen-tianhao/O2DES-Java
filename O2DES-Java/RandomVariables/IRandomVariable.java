@@ -1,4 +1,4 @@
-﻿package O2DESNet.RandomVariables;
+﻿package RandomVariables;
 
 import java.util.Random;
 

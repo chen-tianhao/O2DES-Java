@@ -2,18 +2,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Random;
 
-abstract class Sandbox {
-    protected LocalDateTime clockTime;
-
-    protected void schedule(Runnable task, Duration delay) {
-        // Implement scheduling logic here
-    }
-
-    protected void advanceClock(Duration time) {
-        // Implement clock advancement logic here
-    }
-}
-
 public class HelloWorld extends Sandbox {
     private int seed;
     private double hourlyArrivalRate;

@@ -1,4 +1,4 @@
-﻿package O2DESNet.Distributions;
+﻿package Distributions;
 
 import org.apache.commons.math3.distribution.BetaDistribution;
 import java.util.Random;

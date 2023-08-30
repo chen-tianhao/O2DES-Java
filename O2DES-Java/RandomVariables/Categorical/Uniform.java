@@ -1,4 +1,4 @@
-﻿package O2DESNet.RandomVariables.Categorical;
+﻿package RandomVariables.Categorical;
 
 import java.util.List;
 import java.util.Random;

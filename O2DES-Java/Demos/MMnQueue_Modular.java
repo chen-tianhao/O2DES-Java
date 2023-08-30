@@ -1,8 +1,7 @@
-﻿package O2DESNet.Demos;
+﻿package Demos;
 
-import O2DESNet.*;
-import O2DESNet.Distributions.*;
-import O2DESNet.Standard.*;
+import Distributions.*;
+import Standard.*;
 
 public class MMnQueue_Modular extends Sandbox implements IMMnQueue {
     // Static Properties

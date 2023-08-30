@@ -1,4 +1,4 @@
-﻿package O2DESNet.Demos;
+﻿package Demos;
 
 public interface IMMnQueue {
     double getHourlyArrivalRate();

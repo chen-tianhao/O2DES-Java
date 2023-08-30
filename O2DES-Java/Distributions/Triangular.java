@@ -1,4 +1,4 @@
-﻿package O2DESNet.Distributions;
+﻿package Distributions;
 
 import java.util.Random;
 import org.apache.commons.math3.distribution.TriangularDistribution;

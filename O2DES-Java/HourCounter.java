@@ -1,6 +1,5 @@
 ﻿import java.io.*;
 import java.util.*;
-import java.time.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -104,11 +103,6 @@ class ReadOnlyHourCounter implements IReadOnlyHourCounter, AutoCloseable {
     public void close() {
     }
 }
-
-import java.io.*;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.*;
 
 public class HourCounter implements IHourCounter, AutoCloseable {
     private ISandbox _sandbox;
