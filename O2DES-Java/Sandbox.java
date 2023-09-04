@@ -14,7 +14,8 @@ interface ISandbox extends AutoCloseable {
     LocalDateTime getHeadEventTime();
     String getLogFile();
     void setLogFile(String logFile);
-    boolean isDebugMode();
+    boolean getDebugMode();
+    boolean setDebugMode(boolean debugMode);
     boolean run();
     boolean run(int eventCount);
     boolean run(LocalDateTime terminate);
@@ -25,26 +26,20 @@ interface ISandbox extends AutoCloseable {
 }
 
 
-abstract class SandboxStatics<TAssets extends IAssets> implements ISandbox {
-    private TAssets assets;
-
-    public Sandbox(TAssets assets, int seed, String id, Pointer pointer) {
-        this.assets = assets;
-        this.seed = seed;
-        this.id = id;
-        this.pointer = pointer;
-    }
-}
-
-
 public abstract class Sandbox implements ISandbox {
     private static int count = 0;
+    /**
+     * Unique index in sequence for all module instances
+     */
     private int index;
+    /**
+     * Tag of the instance of the module
+     */
     private String id;
     private Pointer pointer;
     private Random defaultRS;
     private int seed;
-    private SortedSet<Event> futureEventList = new TreeSet<>(new EventComparator());
+    private SortedSet<Event> futureEventList = new TreeSet<Event>(new EventComparer());
     private List<ISandbox> childrenList = new ArrayList<>();
     private LocalDateTime clockTime = LocalDateTime.now();
 
@@ -176,7 +171,7 @@ public abstract class Sandbox implements ISandbox {
         }
     }
 
-    public boolean isDebugMode() {
+    public boolean getDebugMode() {
         return debugMode;
     }
 
