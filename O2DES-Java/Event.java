@@ -10,6 +10,14 @@ public class Event implements AutoCloseable {
     private LocalDateTime scheduledTime;
     private Consumer<Void> action;
 
+    public int getIndex() {
+        return index;
+    }
+
+    public LocalDateTime getScheduledTime() {
+        return scheduledTime;
+    }
+
     public Event(Sandbox owner, Consumer<Void> action, LocalDateTime scheduledTime, String tag) {
         this.owner = owner;
         this.action = action;
@@ -38,8 +46,7 @@ public class Event implements AutoCloseable {
 class EventComparer implements Comparator<Event> {
     private static final EventComparer instance = new EventComparer();
 
-    private EventComparer() {
-    }
+    private EventComparer() { }
 
     public static EventComparer getInstance() {
         return instance;
@@ -47,12 +54,8 @@ class EventComparer implements Comparator<Event> {
 
     @Override
     public int compare(Event x, Event y) {
-        int compare = x.scheduledTime.compareTo(y.scheduledTime);
-        if (compare == 0) return Integer.compare(x.index, y.index);
+        int compare = x.getScheduledTime().compareTo(y.getScheduledTime());
+        if (compare == 0) return Integer.compare(x.getIndex(), y.getIndex());
         return compare;
     }
-}
-
-class Sandbox {
-    // Sandbox class definition here
 }
