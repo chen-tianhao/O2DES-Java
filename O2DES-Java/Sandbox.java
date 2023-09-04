@@ -1,6 +1,7 @@
 ﻿import java.time.*;
 import java.util.*;
 import java.io.*;
+import java.util.function.Consumer;
 
 
 interface ISandbox extends AutoCloseable {
@@ -23,6 +24,7 @@ interface ISandbox extends AutoCloseable {
     boolean run(double speed);
     boolean warmUp(LocalDateTime till);
     boolean warmUp(Duration period);
+
 }
 
 
@@ -39,10 +41,7 @@ public abstract class Sandbox implements ISandbox {
     private Pointer pointer;
     private Random defaultRS;
     private int seed;
-    private SortedSet<Event> futureEventList = new TreeSet<Event>(new EventComparer());
-    private List<ISandbox> childrenList = new ArrayList<>();
-    private LocalDateTime clockTime = LocalDateTime.now();
-
+    private SortedSet<Event> futureEventList = new TreeSet<Event>(EventComparer.getInstance());
 
     public Random getDefaultRS() {
         return defaultRS;
@@ -52,6 +51,45 @@ public abstract class Sandbox implements ISandbox {
         this.seed = seed;
         defaultRS = new Random(seed);
     }
+
+    protected void schedule(Runnable action, LocalDateTime clockTime, String tag)
+    {
+        futureEventList.add(new Event(this, action, clockTime, tag));
+    }
+
+    protected void schedule(Runnable action, LocalDateTime clockTime)
+    {
+        futureEventList.add(new Event(this, action, clockTime, null));
+    }
+
+    protected void schedule(Runnable action, Duration delay, String tag)
+    {
+        futureEventList.add(new Event(this, action, clockTime.plus(delay), tag));
+    }
+
+    protected void schedule(Runnable action, Duration delay)
+    {
+        futureEventList.add(new Event(this, action, clockTime.plus(delay), null));
+    }
+
+    protected void schedule(Runnable action, String tag)
+    {
+        futureEventList.add(new Event(this, action, clockTime, tag));
+    }
+
+    protected void schedule(Runnable action)
+    {
+        futureEventList.add(new Event(this, action, clockTime, null));
+    }
+
+
+
+
+
+
+    private List<ISandbox> childrenList = new ArrayList<>();
+
+
 
     public Sandbox(int seed, String id, Pointer pointer) {
         this.seed = seed;
@@ -65,11 +103,19 @@ public abstract class Sandbox implements ISandbox {
         Event headEvent = futureEventList.isEmpty() ? null : futureEventList.first();
         for (ISandbox child : childrenList) {
             Event childHeadEvent = ((Sandbox) child).getHeadEvent();
-            if (headEvent == null || (childHeadEvent != null && childHeadEvent.compareTo(headEvent) < 0)) {
+            if (headEvent == null || (childHeadEvent != null &&
+                EventComparer.getInstance().compare(childHeadEvent, headEvent) < 0))
+            {
                 headEvent = childHeadEvent;
             }
         }
         return headEvent;
+    }
+    private LocalDateTime clockTime = LocalDateTime.MIN;
+    public LocalDateTime getClockTime()
+    {
+        if (getParent() == null) return clockTime;
+        return getParent().getClockTime();
     }
 
     public boolean run() {

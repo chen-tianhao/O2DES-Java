@@ -8,7 +8,7 @@ public class Event implements AutoCloseable {
     private String tag;
     private Sandbox owner;
     private LocalDateTime scheduledTime;
-    private Consumer<Void> action;
+    private Runnable action;
 
     public int getIndex() {
         return index;
@@ -18,19 +18,19 @@ public class Event implements AutoCloseable {
         return scheduledTime;
     }
 
-    public Event(Sandbox owner, Consumer<Void> action, LocalDateTime scheduledTime, String tag) {
+    public Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime, String tag) {
         this.owner = owner;
         this.action = action;
         this.scheduledTime = scheduledTime;
         this.tag = tag;
     }
 
-    public Event(Sandbox owner, Consumer<Void> action, LocalDateTime scheduledTime) {
+    public Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime) {
         this(owner, action, scheduledTime, null);
     }
 
     public void invoke() {
-        action.accept(null);
+        action.run();
     }
 
     @Override
