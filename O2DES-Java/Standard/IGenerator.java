@@ -1,7 +1,7 @@
-﻿import java.util.Date;
+﻿import java.time.LocalDateTime;
 
 public interface IGenerator extends ISandbox {
-    Date getStartTime();
+    LocalDateTime getStartTime();
     boolean isOn();
     int getCount();
     void start();

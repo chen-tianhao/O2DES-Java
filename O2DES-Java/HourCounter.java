@@ -2,6 +2,8 @@
 import java.util.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.*;
+import java.util.stream.Collectors;
 
 interface IReadOnlyHourCounter {
     LocalDateTime getLastTime();
@@ -17,14 +19,15 @@ interface IReadOnlyHourCounter {
     double getAverageCount();
     Duration getAverageDuration();
     String getLogFile();
+    void setLogFile(String logFile);
 }
 
 interface IHourCounter extends IReadOnlyHourCounter {
-    void observeCount(double count, LocalDateTime clockTime);
-    void observeChange(double count, LocalDateTime clockTime);
-    void pause();
-    void pause(LocalDateTime clockTime);
-    void resume(LocalDateTime clockTime);
+    void ObserveCount(double count, LocalDateTime clockTime);
+    void ObserveChange(double count, LocalDateTime clockTime);
+    void Pause();
+    void Pause(LocalDateTime clockTime);
+    void Resume(LocalDateTime clockTime);
 }
 
 class ReadOnlyHourCounter implements IReadOnlyHourCounter, AutoCloseable {
@@ -100,6 +103,11 @@ class ReadOnlyHourCounter implements IReadOnlyHourCounter, AutoCloseable {
     }
 
     @Override
+    public void setLogFile(String logFile) {
+         hourCounter.setLogFile(logFile);
+    }
+
+    @Override
     public void close() {
     }
 }
@@ -107,56 +115,103 @@ class ReadOnlyHourCounter implements IReadOnlyHourCounter, AutoCloseable {
 public class HourCounter implements IHourCounter, AutoCloseable {
     private ISandbox _sandbox;
     private LocalDateTime _initialTime;
-    public LocalDateTime LastTime;
-    public double LastCount;
-    public double TotalIncrement;
-    public double TotalDecrement;
-    public double TotalHours;
+    private LocalDateTime lastTime;
+    private double lastCount;
+    public boolean Paused;
+    private double totalIncrement;
+    private double totalDecrement;
+    private double totalHours;
+    private double cumValue;
+    private boolean keepHistory;
+
+    @Override
+    public LocalDateTime getLastTime() {
+        return lastTime;
+    }
+
+    @Override
+    public double getLastCount() {
+        return lastCount;
+    }
+
+    @Override
+    public boolean isPaused() {
+        return Paused;
+    }
+
+    @Override
+    public double getTotalIncrement() {
+        return totalIncrement;
+    }
+
+    @Override
+    public double getTotalDecrement() {
+        return totalDecrement;
+    }
+
+    @Override
+    public double getTotalHours() {
+        return totalHours;
+    }
+
+    public double getIncrementRate() {
+        UpdateToClockTime();
+        return totalIncrement / totalHours;
+    }
+    public double getDecrementRate() {
+        UpdateToClockTime();
+        return totalDecrement / totalHours;
+    }
+
     private void UpdateToClockTime() {
-        if (!LastTime.equals(_sandbox.getClockTime())) {
-            ObserveCount(LastCount);
+        if (!lastTime.equals(_sandbox.getClockTime())) {
+            ObserveCount(lastCount);
         }
     }
     public double getWorkingTimeRatio() {
         UpdateToClockTime();
-        if (LastTime.equals(_initialTime)) {
+        if (lastTime.equals(_initialTime)) {
             return 0;
         }
-        return TotalHours / Duration.between(_initialTime, LastTime).toHours();
+        return totalHours / Duration.between(_initialTime, lastTime).toHours();
     }
-    public double CumValue;
+
+    @Override
+    public double getCumValue() {
+        return cumValue;
+    }
+
     public double getAverageCount() {
         UpdateToClockTime();
-        if (TotalHours == 0) {
-            return LastCount;
+        if (totalHours == 0) {
+            return lastCount;
         }
-        return CumValue / TotalHours;
+        return cumValue / totalHours;
     }
     public Duration getAverageDuration() {
         UpdateToClockTime();
-        double hours = getAverageCount() / DecrementRate;
+        double hours = getAverageCount() / getDecrementRate();
         if (Double.isNaN(hours) || Double.isInfinite(hours)) {
             hours = 0;
         }
         return Duration.ofHours((long) hours);
     }
-    public boolean Paused;
 
     private HashMap<LocalDateTime, Double> _history;
-    public List<Pair<Double, Double>> getHistory() {
-        if (!KeepHistory) {
+    public List<Map.Entry<Double, Double>> getHistory() {
+        if (!keepHistory) {
             return null;
         }
-        List<Pair<Double, Double>> history = new ArrayList<>();
-        for (Map.Entry<LocalDateTime, Double> entry : _history.entrySet()) {
-            double timeDiffHours = Duration.between(_initialTime, entry.getKey()).toHours();
-            history.add(new Pair<>(timeDiffHours, entry.getValue()));
-        }
-        history.sort((a, b) -> a.getKey().compareTo(b.getKey()));
+        List<Map.Entry<Double, Double>> history = _history.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> {
+                    double hoursDifference = Duration.between(_initialTime, entry.getKey()).toHours();
+                    return new AbstractMap.SimpleEntry<>(hoursDifference, entry.getValue());
+                })
+                .collect(Collectors.toList());
         return history;
     }
 
-    public boolean KeepHistory;
     public HourCounter(ISandbox sandbox, boolean keepHistory) {
         Init(sandbox, LocalDateTime.MIN, keepHistory);
     }
@@ -166,35 +221,35 @@ public class HourCounter implements IHourCounter, AutoCloseable {
     private void Init(ISandbox sandbox, LocalDateTime initialTime, boolean keepHistory) {
         _sandbox = sandbox;
         _initialTime = initialTime;
-        LastTime = initialTime;
-        LastCount = 0;
-        TotalIncrement = 0;
-        TotalDecrement = 0;
-        TotalHours = 0;
-        CumValue = 0;
-        KeepHistory = keepHistory;
-        if (KeepHistory) {
+        lastTime = initialTime;
+        lastCount = 0;
+        totalIncrement = 0;
+        totalDecrement = 0;
+        totalHours = 0;
+        cumValue = 0;
+        this.keepHistory = keepHistory;
+        if (this.keepHistory) {
             _history = new HashMap<>();
         }
     }
     public void ObserveCount(double count) {
         LocalDateTime clockTime = _sandbox.getClockTime();
-        if (clockTime.isBefore(LastTime)) {
+        if (clockTime.isBefore(lastTime)) {
             throw new RuntimeException("Time of new count cannot be earlier than current time.");
         }
         if (!Paused) {
-            double hours = Duration.between(LastTime, clockTime).toHours();
-            TotalHours += hours;
-            CumValue += hours * LastCount;
-            if (count > LastCount) {
-                TotalIncrement += count - LastCount;
+            double hours = Duration.between(lastTime, clockTime).toHours();
+            totalHours += hours;
+            cumValue += hours * lastCount;
+            if (count > lastCount) {
+                totalIncrement += count - lastCount;
             } else {
-                TotalDecrement += LastCount - count;
+                totalDecrement += lastCount - count;
             }
         }
-        LastTime = clockTime;
-        LastCount = count;
-        if (KeepHistory) {
+        lastTime = clockTime;
+        lastCount = count;
+        if (keepHistory) {
             _history.put(clockTime, count);
         }
     }
@@ -203,14 +258,25 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         if (Paused) {
             return;
         }
-        ObserveCount(LastCount, clockTime);
+        ObserveCount(lastCount, clockTime);
         Paused = true;
     }
+
+    @Override
+    public void Pause(LocalDateTime clockTime) {
+
+    }
+
+    @Override
+    public void Resume(LocalDateTime clockTime) {
+
+    }
+
     public void Resume() {
         if (!Paused) {
             return;
         }
-        LastTime = _sandbox.getClockTime();
+        lastTime = _sandbox.getClockTime();
         Paused = false;
     }
     private void CheckClockTime(LocalDateTime clockTime) {
@@ -218,21 +284,14 @@ public class HourCounter implements IHourCounter, AutoCloseable {
             throw new RuntimeException("ClockTime is not consistent with the Sandbox.");
         }
     }
-    public double getIncrementRate() {
-        UpdateToClockTime();
-        return TotalIncrement / TotalHours;
-    }
-    public double getDecrementRate() {
-        UpdateToClockTime();
-        return TotalDecrement / TotalHours;
-    }
+
     private void WarmedUp() {
         _initialTime = _sandbox.getClockTime();
-        LastTime = _sandbox.getClockTime();
-        TotalIncrement = 0;
-        TotalDecrement = 0;
-        TotalHours = 0;
-        CumValue = 0;
+        lastTime = _sandbox.getClockTime();
+        totalIncrement = 0;
+        totalDecrement = 0;
+        totalHours = 0;
+        cumValue = 0;
         HoursForCount = new HashMap<>();
     }
     public HashMap<Double, Double> HoursForCount = new HashMap<>();
@@ -292,7 +351,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         if (_logFile != null) {
             try (BufferedWriter sw = new BufferedWriter(new FileWriter(_logFile))) {
                 sw.write("Hours,Count,Remark\n");
-                sw.write(String.format("%f,%f\n", TotalHours, LastCount));
+                sw.write(String.format("%f,%f\n", totalHours, lastCount));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -308,4 +367,29 @@ public class HourCounter implements IHourCounter, AutoCloseable {
 
     @Override
     public void close() { }
+
+    @Override
+    public void ObserveCount(double count, LocalDateTime clockTime) {
+
+    }
+
+    @Override
+    public void ObserveChange(double count, LocalDateTime clockTime) {
+
+    }
+
+    @Override
+    public void Oause() {
+
+    }
+
+    @Override
+    public void Oause(LocalDateTime clockTime) {
+
+    }
+
+    @Override
+    public void Oesume(LocalDateTime clockTime) {
+
+    }
 }

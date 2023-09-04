@@ -1,7 +1,7 @@
 ﻿import java.util.Random;
 import java.util.function.Function;
 
-public class Generator extends Sandbox<Generator.Statics> implements IGenerator {
+public class Generator extends SandboxStatics<Generator.Statics> implements IGenerator {
 
     public static class Statics implements IAssets {
         @Override
@@ -23,7 +23,7 @@ public class Generator extends Sandbox<Generator.Statics> implements IGenerator 
     }
 
     // Dynamic Properties
-    private DateTime startTime;
+    private LocalDateTime startTime;
     private boolean isOn;
     private int count;
 
@@ -35,7 +35,7 @@ public class Generator extends Sandbox<Generator.Statics> implements IGenerator 
     }
 
     // Getters for Dynamic Properties
-    public DateTime getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
@@ -94,8 +94,22 @@ public class Generator extends Sandbox<Generator.Statics> implements IGenerator 
     // Event Listener
     private Action onArrive = () -> {};
 
-    public Generator(Statics assets, int seed) {
-        this(assets, seed, null);
+    public Generator(Statics assets, int seed, String id) {
+        super(assets, seed, id);
+        isOn = false;
+        count = 0;
+    }
+
+    public Generator(Statics assets) {
+        super(assets, 0, null);
+        isOn = false;
+        count = 0;
+    }
+
+    public Generator(Statics assets, String id) {
+        super(assets, 0, id);
+        isOn = false;
+        count = 0;
     }
 
     @Override

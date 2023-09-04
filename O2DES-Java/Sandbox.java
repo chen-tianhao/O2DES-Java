@@ -1,33 +1,32 @@
-﻿import java.time.Duration;
+﻿import java.time.*;
 import java.util.*;
 import java.io.*;
 
-public interface ISandbox extends AutoCloseable {
+
+interface ISandbox extends AutoCloseable {
     int getIndex();
     String getId();
     Pointer getPointer();
     int getSeed();
     ISandbox getParent();
     List<ISandbox> getChildren();
-    Date getClockTime();
-    Date getHeadEventTime();
+    LocalDateTime getClockTime();
+    LocalDateTime getHeadEventTime();
     String getLogFile();
     void setLogFile(String logFile);
     boolean isDebugMode();
     boolean run();
     boolean run(int eventCount);
-    boolean run(Date terminate);
+    boolean run(LocalDateTime terminate);
     boolean run(Duration duration);
     boolean run(double speed);
-    boolean warmUp(Date till);
+    boolean warmUp(LocalDateTime till);
     boolean warmUp(Duration period);
 }
 
-abstract class Sandbox<TAssets extends IAssets> implements ISandbox {
-    private final TAssets assets;
-    private final int seed;
-    private final String id;
-    private final Pointer pointer;
+
+abstract class SandboxStatics<TAssets extends IAssets> implements ISandbox {
+    private TAssets assets;
 
     public Sandbox(TAssets assets, int seed, String id, Pointer pointer) {
         this.assets = assets;
@@ -37,7 +36,8 @@ abstract class Sandbox<TAssets extends IAssets> implements ISandbox {
     }
 }
 
-abstract class Sandbox implements ISandbox {
+
+public abstract class Sandbox implements ISandbox {
     private static int count = 0;
     private int index;
     private String id;
@@ -46,7 +46,17 @@ abstract class Sandbox implements ISandbox {
     private int seed;
     private SortedSet<Event> futureEventList = new TreeSet<>(new EventComparator());
     private List<ISandbox> childrenList = new ArrayList<>();
-    private Date clockTime = new Date(0);
+    private LocalDateTime clockTime = LocalDateTime.now();
+
+
+    public Random getDefaultRS() {
+        return defaultRS;
+    }
+
+    public void setSeed(int seed) {
+        this.seed = seed;
+        defaultRS = new Random(seed);
+    }
 
     public Sandbox(int seed, String id, Pointer pointer) {
         this.seed = seed;
@@ -85,10 +95,10 @@ abstract class Sandbox implements ISandbox {
         if (getParent() != null) {
             return getParent().run(duration);
         }
-        return run(new Date(getClockTime().getTime() + duration.toMillis()));
+        return run(getClockTime().plusNanos(duration.toMillis()* 1_000_000));
     }
 
-    public boolean run(Date terminate) {
+    public boolean run(LocalDateTime terminate) {
         if (getParent() != null) {
             return getParent().run(terminate);
         }
@@ -115,7 +125,7 @@ abstract class Sandbox implements ISandbox {
         return true;
     }
 
-    private Date realTimeForLastRun = null;
+    private LocalDateTime realTimeForLastRun = null;
 
     public boolean run(double speed) {
         if (getParent() != null) {
@@ -123,10 +133,11 @@ abstract class Sandbox implements ISandbox {
         }
         boolean result = true;
         if (realTimeForLastRun != null) {
-            result = run(new Date((long) (getClockTime().getTime() +
-                                  (System.currentTimeMillis() - realTimeForLastRun.getTime()) * speed)));
+            result = run(LocalDateTime.now().plusSeconds(
+                    (long)(Duration.between(LocalDateTime.now(), realTimeForLastRun).getSeconds() * speed)
+            ));
         }
-        realTimeForLastRun = new Date();
+        realTimeForLastRun = LocalDateTime.now();
         return result;
     }
 

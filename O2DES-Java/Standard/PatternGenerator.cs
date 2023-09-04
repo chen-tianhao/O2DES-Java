@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace O2DESNet.Standard
 {
-    public class PatternGenerator : Sandbox<PatternGenerator.Statics>, IGenerator
+    public class PatternGenerator : SandboxStatics<PatternGenerator.Statics>, IGenerator
     {
         public class Statics : IAssets
         {
@@ -44,7 +44,7 @@ namespace O2DESNet.Standard
         }
 
         #region Dyanmic Properties
-        public DateTime? StartTime { get; private set; }
+        public LocalDateTime? StartTime { get; private set; }
         public bool IsOn { get; private set; }
         public int Count { get; private set; }
         private double PeakHourlyRate { get; set; }

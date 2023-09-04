@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace O2DESNet.Standard
 {
-    public class Server : Sandbox<Server.Statics>, IServer
+    public class Server : SandboxStatics<Server.Statics>, IServer
     {
         public class Statics : IAssets
         {
