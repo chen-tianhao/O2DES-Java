@@ -285,7 +285,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
     }
 
-    private void WarmedUp() {
+    void warmedUp() {
         _initialTime = _sandbox.getClockTime();
         lastTime = _sandbox.getClockTime();
         totalIncrement = 0;

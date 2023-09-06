@@ -4,11 +4,16 @@ import java.util.function.Consumer;
 
 public class Event implements AutoCloseable {
     private static int count = 0;
-    private int index = count++;
-    private String tag;
-    private Sandbox owner;
-    private LocalDateTime scheduledTime;
-    private Runnable action;
+    int index = count++;
+    String tag;
+    Sandbox owner;
+    LocalDateTime scheduledTime;
+    Runnable action;
+
+    public Sandbox getOwner()
+    {
+        return owner;
+    }
 
     public int getIndex() {
         return index;
@@ -18,18 +23,18 @@ public class Event implements AutoCloseable {
         return scheduledTime;
     }
 
-    public Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime, String tag) {
+    Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime, String tag) {
         this.owner = owner;
         this.action = action;
         this.scheduledTime = scheduledTime;
         this.tag = tag;
     }
 
-    public Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime) {
+    Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime) {
         this(owner, action, scheduledTime, null);
     }
 
-    public void invoke() {
+    void invoke() {
         action.run();
     }
 
