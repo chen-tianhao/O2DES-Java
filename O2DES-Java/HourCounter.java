@@ -117,7 +117,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
     private LocalDateTime _initialTime;
     private LocalDateTime lastTime;
     private double lastCount;
-    public boolean Paused;
+    private boolean Paused;
     private double totalIncrement;
     private double totalDecrement;
     private double totalHours;
@@ -139,19 +139,36 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         return Paused;
     }
 
+    /**
+     * @return Total number of increment observed
+     */
     @Override
     public double getTotalIncrement() {
         return totalIncrement;
     }
 
+    /**
+     * @return Total number of decrement observed
+     */
     @Override
     public double getTotalDecrement() {
         return totalDecrement;
     }
 
+    /**
+     * @return Total number of hours since the initial time.
+     */
     @Override
     public double getTotalHours() {
         return totalHours;
+    }
+
+    /**
+     * @return The cumulative count value (integral) on time in unit of hours
+     */
+    @Override
+    public double getCumValue() {
+        return cumValue;
     }
 
     public double getIncrementRate() {
@@ -165,7 +182,13 @@ public class HourCounter implements IHourCounter, AutoCloseable {
 
     private void UpdateToClockTime() {
         if (!lastTime.equals(_sandbox.getClockTime())) {
-            ObserveCount(lastCount);
+            try {
+                ObserveCount(lastCount);
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
         }
     }
     public double getWorkingTimeRatio() {
@@ -176,11 +199,9 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         return totalHours / Duration.between(_initialTime, lastTime).toHours();
     }
 
-    @Override
-    public double getCumValue() {
-        return cumValue;
-    }
-
+    /**
+     * @return The average count on observation period
+     */
     public double getAverageCount() {
         UpdateToClockTime();
         if (totalHours == 0) {
@@ -188,6 +209,12 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
         return cumValue / totalHours;
     }
+
+    /**
+     * @return Average timespan that a load stays in the activity, if it is a stationary process,
+     *         i.e., decrement rate == increment rate
+     *         It is 0 at the initial status, i.e., decrement rate is NaN (no decrement observed).
+     */
     public Duration getAverageDuration() {
         UpdateToClockTime();
         double hours = getAverageCount() / getDecrementRate();
@@ -198,6 +225,10 @@ public class HourCounter implements IHourCounter, AutoCloseable {
     }
 
     private HashMap<LocalDateTime, Double> _history;
+
+    /**
+     * @return Scatter points of (time in hours, count)
+     */
     public List<Map.Entry<Double, Double>> getHistory() {
         if (!keepHistory) {
             return null;
@@ -228,31 +259,61 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         totalHours = 0;
         cumValue = 0;
         this.keepHistory = keepHistory;
-        if (this.keepHistory) {
-            _history = new HashMap<>();
-        }
+        if (this.keepHistory) { _history = new HashMap<>(); }
     }
-    public void ObserveCount(double count) {
-        LocalDateTime clockTime = _sandbox.getClockTime();
-        if (clockTime.isBefore(lastTime)) {
-            throw new RuntimeException("Time of new count cannot be earlier than current time.");
+
+    public void ObserveCount(double count) throws Exception {
+        LocalDateTime clockTime = LocalDateTime.now();
+
+        if (clockTime.compareTo(lastTime) < 0) {
+            throw new Exception("Time of new count cannot be earlier than current time.");
         }
+
         if (!Paused) {
             double hours = Duration.between(lastTime, clockTime).toHours();
             totalHours += hours;
             cumValue += hours * lastCount;
+
             if (count > lastCount) {
                 totalIncrement += count - lastCount;
             } else {
                 totalDecrement += lastCount - count;
             }
+
+            if (!HoursForCount.containsKey(lastCount)) {
+                HoursForCount.put(lastCount, 0.0);
+            }
+            HoursForCount.put(lastCount, HoursForCount.get(lastCount) + hours);
         }
+
+        if (_logFile != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(_logFile, true))) {
+                writer.write(String.format("%f,%f", totalHours, lastCount));
+                if (Paused) {
+                    writer.write(",Paused");
+                }
+                writer.newLine();
+
+                if (count != lastCount) {
+                    writer.write(String.format("%f,%f", totalHours, count));
+                    if (Paused) {
+                        writer.write(",Paused");
+                    }
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         lastTime = clockTime;
         lastCount = count;
+
         if (keepHistory) {
             _history.put(clockTime, count);
         }
     }
+
     public void Pause() {
         LocalDateTime clockTime = _sandbox.getClockTime();
         if (Paused) {
