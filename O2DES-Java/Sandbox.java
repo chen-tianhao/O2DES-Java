@@ -253,7 +253,7 @@ public abstract class Sandbox implements ISandbox {
     {
         if (parent != null) return parent.warmUp(till);
         var result = run(till);
-        onWarmedUp.Invoke();
+        onWarmedUp.invoke();
         return result; // to be continued
     }
     private Runnable onWarmedUp;

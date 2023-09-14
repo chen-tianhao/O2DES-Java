@@ -2,7 +2,6 @@
 import java.util.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.*;
 import java.util.stream.Collectors;
 
 interface IReadOnlyHourCounter {
@@ -23,11 +22,11 @@ interface IReadOnlyHourCounter {
 }
 
 interface IHourCounter extends IReadOnlyHourCounter {
-    void ObserveCount(double count, LocalDateTime clockTime);
-    void ObserveChange(double count, LocalDateTime clockTime);
-    void Pause();
-    void Pause(LocalDateTime clockTime);
-    void Resume(LocalDateTime clockTime);
+    void observeCount(double count, LocalDateTime clockTime);
+    void observeChange(double count, LocalDateTime clockTime);
+    void pause();
+    void pause(LocalDateTime clockTime);
+    void resume(LocalDateTime clockTime);
 }
 
 class ReadOnlyHourCounter implements IReadOnlyHourCounter, AutoCloseable {
@@ -183,7 +182,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
     private void UpdateToClockTime() {
         if (!lastTime.equals(_sandbox.getClockTime())) {
             try {
-                ObserveCount(lastCount);
+                observeCount(lastCount);
             }
             catch(Exception e)
             {
@@ -244,12 +243,12 @@ public class HourCounter implements IHourCounter, AutoCloseable {
     }
 
     public HourCounter(ISandbox sandbox, boolean keepHistory) {
-        Init(sandbox, LocalDateTime.MIN, keepHistory);
+        init(sandbox, LocalDateTime.MIN, keepHistory);
     }
     public HourCounter(ISandbox sandbox, LocalDateTime initialTime, boolean keepHistory) {
-        Init(sandbox, initialTime, keepHistory);
+        init(sandbox, initialTime, keepHistory);
     }
-    private void Init(ISandbox sandbox, LocalDateTime initialTime, boolean keepHistory) {
+    private void init(ISandbox sandbox, LocalDateTime initialTime, boolean keepHistory) {
         _sandbox = sandbox;
         _initialTime = initialTime;
         lastTime = initialTime;
@@ -262,7 +261,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         if (this.keepHistory) { _history = new HashMap<>(); }
     }
 
-    public void ObserveCount(double count) throws Exception
+    public void observeCount(double count) throws Exception
     {
         LocalDateTime clockTime = LocalDateTime.now();
 
@@ -321,12 +320,12 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * @param clockTime
      */
     @Override
-    public void ObserveCount(double count, LocalDateTime clockTime)
+    public void observeCount(double count, LocalDateTime clockTime)
     {
-        CheckClockTime(clockTime);
+        checkClockTime(clockTime);
         try
         {
-            ObserveCount(count);
+            observeCount(count);
         }
         catch(Exception e)
         {
@@ -334,11 +333,11 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
     }
 
-    public void ObserveChange(double change)
+    public void observeChange(double change)
     {
         try
         {
-            ObserveCount(lastCount + change);
+            observeCount(lastCount + change);
         }
         catch(Exception e)
         {
@@ -351,19 +350,18 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * @param change
      * @param clockTime
      */
-    @Override
-    public void ObserveChange(double change, LocalDateTime clockTime)
+    public void observeChange(double change, LocalDateTime clockTime)
     {
-        CheckClockTime(clockTime);
-        ObserveChange(change);
+        checkClockTime(clockTime);
+        observeChange(change);
     }
 
-    public void Pause() {
+    public void pause() {
         LocalDateTime clockTime = _sandbox.getClockTime();
         if (Paused) {
             return;
         }
-        ObserveCount(lastCount, clockTime);
+        observeCount(lastCount, clockTime);
         Paused = true;
         if (_logFile != null) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(_logFile, true))) {
@@ -379,13 +377,12 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * Remove parameter clockTime as since Version 3.6, according to Issue 1
      * @param clockTime
      */
-    @Override
-    public void Pause(LocalDateTime clockTime) {
-        CheckClockTime(clockTime);
-        Pause();
+    public void pause(LocalDateTime clockTime) {
+        checkClockTime(clockTime);
+        pause();
     }
 
-    public void Resume() {
+    public void resume() {
         if (!Paused) return;
         lastTime = _sandbox.getClockTime();
         Paused = false;
@@ -406,11 +403,11 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * Remove parameter clockTime as since Version 3.6, according to Issue 1
      * @param clockTime
      */
-    public void Resume(LocalDateTime clockTime) {
-        CheckClockTime(clockTime);
-        Resume();
+    public void resume(LocalDateTime clockTime) {
+        checkClockTime(clockTime);
+        resume();
     }
-    private void CheckClockTime(LocalDateTime clockTime) {
+    private void checkClockTime(LocalDateTime clockTime) {
         if (!clockTime.equals(_sandbox.getClockTime())) {
             throw new RuntimeException("ClockTime is not consistent with the Sandbox.");
         }
@@ -428,7 +425,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
 
     public Map<Double, Double> HoursForCount = new TreeMap<>();
 
-    private void SortHoursForCount() {
+    private void sortHoursForCount() {
         HoursForCount = HoursForCount.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
@@ -446,8 +443,8 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * @param ratio values between 0 and 100
      * @return Get the percentile of count values on time, i.e., the count value that with x-percent of time the observation is not higher than it.
      */
-    public double Percentile(double ratio) {
-        SortHoursForCount();
+    public double percentile(double ratio) {
+        sortHoursForCount();
         double threshold = HoursForCount.values().stream().mapToDouble(Double::doubleValue).sum() * ratio / 100;
         for (Map.Entry<Double, Double> entry : HoursForCount.entrySet()) {
             threshold -= entry.getValue();
@@ -463,8 +460,8 @@ public class HourCounter implements IHourCounter, AutoCloseable {
      * @param countInterval width of the count value interval
      * @return A dictionary map from [the lowerbound value of each interval] to the array of [total hours observed], [probability], [cumulated probability]
      */
-    public HashMap<Double, double[]> Histogram(double countInterval) {
-        SortHoursForCount();
+    public HashMap<Double, double[]> histogram(double countInterval) {
+        sortHoursForCount();
         HashMap<Double, double[]> histogram = new HashMap<>();
         if (!HoursForCount.isEmpty()) {
             double countLb = 0;
@@ -507,7 +504,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
     }
     private ReadOnlyHourCounter ReadOnly = null;
-    public ReadOnlyHourCounter AsReadOnly() {
+    public ReadOnlyHourCounter asReadOnly() {
         if (ReadOnly == null) {
             ReadOnly = new ReadOnlyHourCounter(this);
         }
