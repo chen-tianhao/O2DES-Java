@@ -262,7 +262,8 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         if (this.keepHistory) { _history = new HashMap<>(); }
     }
 
-    public void ObserveCount(double count) throws Exception {
+    public void ObserveCount(double count) throws Exception
+    {
         LocalDateTime clockTime = LocalDateTime.now();
 
         if (clockTime.compareTo(lastTime) < 0) {
@@ -314,6 +315,49 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
     }
 
+    /***
+     * Remove parameter clockTime as since Version 3.6, according to Issue 1
+     * @param count
+     * @param clockTime
+     */
+    @Override
+    public void ObserveCount(double count, LocalDateTime clockTime)
+    {
+        CheckClockTime(clockTime);
+        try
+        {
+            ObserveCount(count);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void ObserveChange(double change)
+    {
+        try
+        {
+            ObserveCount(lastCount + change);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /***
+     * Remove parameter clockTime as since Version 3.6, according to Issue 1
+     * @param change
+     * @param clockTime
+     */
+    @Override
+    public void ObserveChange(double change, LocalDateTime clockTime)
+    {
+        CheckClockTime(clockTime);
+        ObserveChange(change);
+    }
+
     public void Pause() {
         LocalDateTime clockTime = _sandbox.getClockTime();
         if (Paused) {
@@ -321,24 +365,50 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
         ObserveCount(lastCount, clockTime);
         Paused = true;
+        if (_logFile != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(_logFile, true))) {
+                writer.write(String.format("%f,%f,Paused", totalHours, lastCount));
+                writer.newLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
+    /***
+     * Remove parameter clockTime as since Version 3.6, according to Issue 1
+     * @param clockTime
+     */
     @Override
     public void Pause(LocalDateTime clockTime) {
-
-    }
-
-    @Override
-    public void Resume(LocalDateTime clockTime) {
-
+        CheckClockTime(clockTime);
+        Pause();
     }
 
     public void Resume() {
-        if (!Paused) {
-            return;
-        }
+        if (!Paused) return;
         lastTime = _sandbox.getClockTime();
         Paused = false;
+
+        if (_logFile != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(_logFile, true))) {
+                writer.write(String.format("%f,%f,Paused", totalHours, lastCount));
+                writer.newLine();
+                writer.write(String.format("%f,%f", totalHours, lastCount));
+                writer.newLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /***
+     * Remove parameter clockTime as since Version 3.6, according to Issue 1
+     * @param clockTime
+     */
+    public void Resume(LocalDateTime clockTime) {
+        CheckClockTime(clockTime);
+        Resume();
     }
     private void CheckClockTime(LocalDateTime clockTime) {
         if (!clockTime.equals(_sandbox.getClockTime())) {
@@ -355,15 +425,27 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         cumValue = 0;
         HoursForCount = new HashMap<>();
     }
-    public HashMap<Double, Double> HoursForCount = new HashMap<>();
+
+    public Map<Double, Double> HoursForCount = new TreeMap<>();
+
     private void SortHoursForCount() {
-        List<Map.Entry<Double, Double>> list = new ArrayList<>(HoursForCount.entrySet());
-        list.sort(Map.Entry.comparingByKey());
-        HoursForCount.clear();
-        for (Map.Entry<Double, Double> entry : list) {
-            HoursForCount.put(entry.getKey(), entry.getValue());
-        }
+        HoursForCount = HoursForCount.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(
+                        java.util.stream.Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (e1, e2) -> e1,
+                                java.util.LinkedHashMap::new
+                        )
+                );
     }
+
+    /***
+     * @param ratio values between 0 and 100
+     * @return Get the percentile of count values on time, i.e., the count value that with x-percent of time the observation is not higher than it.
+     */
     public double Percentile(double ratio) {
         SortHoursForCount();
         double threshold = HoursForCount.values().stream().mapToDouble(Double::doubleValue).sum() * ratio / 100;
@@ -375,6 +457,12 @@ public class HourCounter implements IHourCounter, AutoCloseable {
         }
         return Double.POSITIVE_INFINITY;
     }
+
+    /***
+     * Statistics for the amount of time spent at each range of count values
+     * @param countInterval width of the count value interval
+     * @return A dictionary map from [the lowerbound value of each interval] to the array of [total hours observed], [probability], [cumulated probability]
+     */
     public HashMap<Double, double[]> Histogram(double countInterval) {
         SortHoursForCount();
         HashMap<Double, double[]> histogram = new HashMap<>();
@@ -428,29 +516,4 @@ public class HourCounter implements IHourCounter, AutoCloseable {
 
     @Override
     public void close() { }
-
-    @Override
-    public void ObserveCount(double count, LocalDateTime clockTime) {
-
-    }
-
-    @Override
-    public void ObserveChange(double count, LocalDateTime clockTime) {
-
-    }
-
-    @Override
-    public void Oause() {
-
-    }
-
-    @Override
-    public void Oause(LocalDateTime clockTime) {
-
-    }
-
-    @Override
-    public void Oesume(LocalDateTime clockTime) {
-
-    }
 }
