@@ -2,13 +2,17 @@
 import java.util.*;
 import java.util.function.Consumer;
 
+interface Callback {
+    void callback();
+}
+
 public class Event implements AutoCloseable {
     private static int count = 0;
     int index = count++;
     String tag;
     Sandbox owner;
     LocalDateTime scheduledTime;
-    Runnable action;
+    Action action;
 
     public Sandbox getOwner()
     {
@@ -23,19 +27,19 @@ public class Event implements AutoCloseable {
         return scheduledTime;
     }
 
-    Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime, String tag) {
+    Event(Sandbox owner, Action action, LocalDateTime scheduledTime, String tag) {
         this.owner = owner;
         this.action = action;
         this.scheduledTime = scheduledTime;
         this.tag = tag;
     }
 
-    Event(Sandbox owner, Runnable action, LocalDateTime scheduledTime) {
+    Event(Sandbox owner, Action action, LocalDateTime scheduledTime) {
         this(owner, action, scheduledTime, null);
     }
 
-    void invoke() {
-        action.run();
+    public void invoke() {
+        action.invoke();
     }
 
     @Override
@@ -44,7 +48,18 @@ public class Event implements AutoCloseable {
     }
 
     @Override
-    public void close() {
+    public void close() { }
+
+    // for multicast delegation
+    private List<Callback> callbacks = new ArrayList<>();
+
+    public void register(Callback callback) {
+        callbacks.add(callback);
+    }
+
+    public void trigger() {
+        System.out.println("Event occurred!");
+        callbacks.forEach(Callback::callback);
     }
 }
 

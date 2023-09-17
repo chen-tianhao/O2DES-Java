@@ -56,32 +56,32 @@ public abstract class Sandbox implements ISandbox {
         defaultRS = new Random(seed);
     }
 
-    protected void schedule(Runnable action, LocalDateTime clockTime, String tag)
+    protected void schedule(Action action, LocalDateTime clockTime, String tag)
     {
         futureEventList.add(new Event(this, action, clockTime, tag));
     }
 
-    protected void schedule(Runnable action, LocalDateTime clockTime)
+    protected void schedule(Action action, LocalDateTime clockTime)
     {
         futureEventList.add(new Event(this, action, clockTime, null));
     }
 
-    protected void schedule(Runnable action, Duration delay, String tag)
+    protected void schedule(Action action, Duration delay, String tag)
     {
         futureEventList.add(new Event(this, action, clockTime.plus(delay), tag));
     }
 
-    protected void schedule(Runnable action, Duration delay)
+    protected void schedule(Action action, Duration delay)
     {
         futureEventList.add(new Event(this, action, clockTime.plus(delay), null));
     }
 
-    protected void schedule(Runnable action, String tag)
+    protected void schedule(Action action, String tag)
     {
         futureEventList.add(new Event(this, action, clockTime, tag));
     }
 
-    protected void schedule(Runnable action)
+    protected void schedule(Action action)
     {
         futureEventList.add(new Event(this, action, clockTime, null));
     }
@@ -202,11 +202,13 @@ public abstract class Sandbox implements ISandbox {
     private List<ISandbox> children = Collections.unmodifiableList(childrenList);
     public List<ISandbox> getChildren() { return children; }
 
+    private Action onWarmedUp;
+
     protected Sandbox AddChild(Sandbox child)
     {
         childrenList.add(child);
         child.parent = this;
-        onWarmedUp += child.onWarmedUp;
+        onWarmedUp.register(child.onWarmedUp);
         return child;
     }
 
@@ -219,7 +221,7 @@ public abstract class Sandbox implements ISandbox {
     {
         HourCounter hc = new HourCounter(this, keepHistory);
         hourCountersList.add(hc);
-        onWarmedUp += () => hc.warmedUp();
+        onWarmedUp.register(hc::warmedUp);
         return hc;
     }
 
@@ -229,11 +231,11 @@ public abstract class Sandbox implements ISandbox {
     }
 
     public Sandbox(int seed, String id, Pointer pointer) {
-        this.seed = seed;
+        this.setSeed(seed);
+        this.index = ++count;
         this.id = id;
         this.pointer = pointer;
-        this.index = ++count;
-        this.defaultRS = new Random(seed);
+        onWarmedUp.register(this::warmedUpHandler);
     }
 
     public String ToString()
@@ -256,10 +258,8 @@ public abstract class Sandbox implements ISandbox {
         onWarmedUp.invoke();
         return result; // to be continued
     }
-    private Runnable onWarmedUp;
 
     protected void warmedUpHandler() { }
-
 
     public String getLogFile() {
         return logFile;
