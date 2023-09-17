@@ -3,11 +3,15 @@ package O2DES_Java;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Action implements Runnable
 {
     // for multicast delegation
-    private List<Callback> callbacks = new ArrayList<>();
+    private final List<Callback> callbacks = new ArrayList<>();
+
+    public Action(Callback func)
+    {
+        callbacks.add(func);
+    }
 
     public void register(Callback callback) {
         callbacks.add(callback);

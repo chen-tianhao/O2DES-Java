@@ -21,7 +21,7 @@ interface ISandbox extends AutoCloseable {
     String getLogFile();
     void setLogFile(String logFile);
     boolean getDebugMode();
-    boolean setDebugMode(boolean debugMode);
+    void setDebugMode(boolean debugMode);
     boolean run();
     boolean run(int eventCount);
     boolean run(LocalDateTime terminate);
@@ -46,9 +46,16 @@ public abstract class Sandbox implements ISandbox {
     private Pointer pointer;
     private Random defaultRS;
     private int seed;
+
+    public int getIndex() {return index;}
+    public String getId() {return id;}
+    public Pointer getPointer() {return pointer;}
+
+    public int getSeed() {return seed;}
+    public boolean getDebugMode() {return debugMode;}
+    public void setDebugMode(boolean debugMode) {this.debugMode = debugMode;}
+
     SortedSet<Event> futureEventList = new TreeSet<Event>(EventComparer.getInstance());
-
-
     public Random getDefaultRS() {
         return defaultRS;
     }
@@ -87,10 +94,6 @@ public abstract class Sandbox implements ISandbox {
     {
         futureEventList.add(new Event(this, action, clockTime, null));
     }
-
-
-
-
 
     Event getHeadEvent() {
         Event headEvent = futureEventList.isEmpty() ? null : futureEventList.first();
@@ -237,6 +240,14 @@ public abstract class Sandbox implements ISandbox {
         this.index = ++count;
         this.id = id;
         this.pointer = pointer;
+        onWarmedUp.register(this::warmedUpHandler);
+    }
+
+    public Sandbox(int seed) {
+        this.setSeed(seed);
+        this.index = ++count;
+        this.id = null;
+        this.pointer = new Pointer();
         onWarmedUp.register(this::warmedUpHandler);
     }
 

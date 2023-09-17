@@ -1,5 +1,7 @@
 package O2DES_Java_Test;
 
+import O2DES_Java.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -16,7 +18,7 @@ public class MMcQueue extends Sandbox {
     private int inService;
 
     public MMcQueue(double hourlyArrivalRate, double hourlyServiceRate, int capacity, int seed) {
-        super();
+        super(seed);
         this.seed = seed;
         this.hourlyArrivalRate = hourlyArrivalRate;
         this.hourlyServiceRate = hourlyServiceRate;
@@ -24,29 +26,29 @@ public class MMcQueue extends Sandbox {
         this.inQueue = 0;
         this.inService = 0;
 
-        this.schedule(this::arrive, Duration.ofSeconds(0));
+        this.schedule(new Action(this::arrive), Duration.ofSeconds(0));
     }
 
     private void arrive() {
         if (inService < capacity) {
             inService++;
-            System.out.println(clockTime + "\tArrive and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
-            this.schedule(this::depart, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
+            System.out.println(LocalDateTime.now() + "\tArrive and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
+            this.schedule(new Action(this::depart), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
         } else {
             inQueue++;
-            System.out.println(clockTime + "\tArrive and Join Queue (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
+            System.out.println(LocalDateTime.now() + "\tArrive and Join Queue (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
         }
-        this.schedule(this::arrive, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyArrivalRate * 3600000)));
+        this.schedule(new Action(this::arrive), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyArrivalRate * 3600000)));
     }
 
     private void depart() {
         if (inQueue > 0) {
             inQueue--;
-            System.out.println(clockTime + "\tDepart and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
-            this.schedule(this::depart, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
+            System.out.println(LocalDateTime.now() + "\tDepart and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
+            this.schedule(new Action(this::depart), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
         } else {
             inService--;
-            System.out.println(clockTime + "\tDepart (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
+            System.out.println(LocalDateTime.now() + "\tDepart (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
         }
     }
 

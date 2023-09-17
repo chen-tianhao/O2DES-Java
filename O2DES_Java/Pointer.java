@@ -29,6 +29,13 @@ public class Pointer {
         Flipped = flipped;
     }
 
+    public Pointer() {
+        X = 0;
+        Y = 0;
+        Angle = 0;
+        Flipped = false;
+    }
+
     public static Pointer multiply(Pointer inner, Pointer outter) {
         double radius = outter.Angle / 180 * Math.PI;
         return new Pointer(

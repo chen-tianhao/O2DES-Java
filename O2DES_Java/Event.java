@@ -1,12 +1,7 @@
 ﻿package O2DES_Java;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.function.Consumer;
-
-interface Callback {
-    void callback();
-}
+import java.util.Comparator;
 
 public class Event implements AutoCloseable {
     private static int count = 0;
@@ -51,18 +46,6 @@ public class Event implements AutoCloseable {
 
     @Override
     public void close() { }
-
-    // for multicast delegation
-    private List<Callback> callbacks = new ArrayList<>();
-
-    public void register(Callback callback) {
-        callbacks.add(callback);
-    }
-
-    public void trigger() {
-        System.out.println("Event occurred!");
-        callbacks.forEach(Callback::callback);
-    }
 }
 
 class EventComparer implements Comparator<Event> {
