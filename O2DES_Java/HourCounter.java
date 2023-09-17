@@ -1,4 +1,6 @@
-﻿import java.io.*;
+﻿package O2DES_Java;
+
+import java.io.*;
 import java.util.*;
 import java.time.Duration;
 import java.time.LocalDateTime;

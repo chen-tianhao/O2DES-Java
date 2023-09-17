@@ -1,4 +1,6 @@
-﻿public class Pointer {
+﻿package O2DES_Java;
+
+public class Pointer {
     private final double X;
     private final double Y;
     private final double Angle;
