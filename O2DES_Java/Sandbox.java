@@ -1,4 +1,4 @@
-﻿package O2DES_Java;
+package O2DES_Java;
 
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -207,7 +207,7 @@ public abstract class Sandbox implements ISandbox {
     private List<ISandbox> children = Collections.unmodifiableList(childrenList);
     public List<ISandbox> getChildren() { return children; }
 
-    private Action onWarmedUp;
+    private Action onWarmedUp = new Action();
 
     protected Sandbox AddChild(Sandbox child)
     {

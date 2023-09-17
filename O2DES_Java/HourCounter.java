@@ -1,4 +1,4 @@
-﻿package O2DES_Java;
+package O2DES_Java;
 
 import java.io.*;
 import java.util.*;

@@ -8,6 +8,8 @@ public class Action implements Runnable
     // for multicast delegation
     private final List<Callback> callbacks = new ArrayList<>();
 
+    public Action() { }
+
     public Action(Callback func)
     {
         callbacks.add(func);
@@ -22,7 +24,6 @@ public class Action implements Runnable
     }
 
     public void invoke() {
-        System.out.println("Event occurred!");
         callbacks.forEach(Callback::callback);
     }
 
