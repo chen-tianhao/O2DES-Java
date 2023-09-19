@@ -22,7 +22,7 @@ public class HelloWorld extends Sandbox {
     }
 
     private void arrive() {
-        System.out.println(LocalDateTime.now() + "\tHello World #" + count + "!");
+        System.out.println(this.getClockTime() + "\tHello World #" + count + "!");
         count++;
         double nextArrivalDelay = -Math.log(1 - new Random(seed).nextDouble()) / hourlyArrivalRate;
         this.schedule(new Action(this::arrive), Duration.ofMillis(Math.round(nextArrivalDelay * 3600000)));
@@ -33,6 +33,6 @@ public class HelloWorld extends Sandbox {
         System.out.println("Demo 1 - Hello world");
         HelloWorld sim1 = new HelloWorld(2, 1);
         sim1.warmUp(LocalDateTime.of(1, 1, 1, 0, 0, 0));
-        sim1.run(Duration.ofHours(30));
+        sim1.run(Duration.ofHours(10));
     }
 }

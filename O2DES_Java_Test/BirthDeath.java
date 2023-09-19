@@ -28,7 +28,7 @@ public class BirthDeath extends Sandbox {
 
     private void birth() {
         population++;
-        System.out.println(LocalDateTime.now() + "\tBirth (Population: #" + population + "!)");
+        System.out.println(this.getClockTime() + "\tBirth (Population: #" + population + "!)");
         // Logger.info(clockTime + "\tBirth (Population: #" + population + "!)");
 
         double nextBirthDelay = -Math.log(1 - new Random(seed).nextDouble()) / hourlyBirthRate;
@@ -40,7 +40,7 @@ public class BirthDeath extends Sandbox {
 
     private void death() {
         population--;
-        System.out.println(LocalDateTime.now() + "\tDeath (Population: #" + population + "!)");
+        System.out.println(this.getClockTime() + "\tDeath (Population: #" + population + "!)");
         // Logger.info(clockTime + "\tDeath (Population: #" + population + "!)");
     }
 

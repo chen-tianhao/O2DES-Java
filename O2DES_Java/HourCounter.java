@@ -265,7 +265,7 @@ public class HourCounter implements IHourCounter, AutoCloseable {
 
     public void observeCount(double count) throws Exception
     {
-        LocalDateTime clockTime = LocalDateTime.now();
+        LocalDateTime clockTime = _sandbox.getClockTime();
 
         if (clockTime.compareTo(lastTime) < 0) {
             throw new Exception("Time of new count cannot be earlier than current time.");

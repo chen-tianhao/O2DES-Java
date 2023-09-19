@@ -77,22 +77,22 @@ public abstract class Sandbox implements ISandbox {
 
     protected void schedule(Action action, Duration delay, String tag)
     {
-        futureEventList.add(new Event(this, action, clockTime.plus(delay), tag));
+        futureEventList.add(new Event(this, action, getClockTime().plus(delay), tag));
     }
 
     protected void schedule(Action action, Duration delay)
     {
-        futureEventList.add(new Event(this, action, clockTime.plus(delay), null));
+        futureEventList.add(new Event(this, action, getClockTime().plus(delay), null));
     }
 
     protected void schedule(Action action, String tag)
     {
-        futureEventList.add(new Event(this, action, clockTime, tag));
+        futureEventList.add(new Event(this, action, getClockTime(), tag));
     }
 
     protected void schedule(Action action)
     {
-        futureEventList.add(new Event(this, action, clockTime, null));
+        futureEventList.add(new Event(this, action, getClockTime(), null));
     }
 
     Event getHeadEvent() {
@@ -107,7 +107,7 @@ public abstract class Sandbox implements ISandbox {
         }
         return headEvent;
     }
-    private LocalDateTime clockTime = LocalDateTime.MIN;
+    private LocalDateTime clockTime = LocalDateTime.of(0, 1, 1, 0, 0, 0);
     public LocalDateTime getClockTime()
     {
         if (getParent() == null) return clockTime;
@@ -142,7 +142,7 @@ public abstract class Sandbox implements ISandbox {
         if (getParent() != null) {
             return getParent().run(duration);
         }
-        return run(getClockTime().plusNanos(duration.toMillis()* 1_000_000));
+        return run(getClockTime().plus(duration));
     }
 
     public boolean run(LocalDateTime terminate) {
@@ -189,7 +189,7 @@ public abstract class Sandbox implements ISandbox {
         boolean result = true;
         if (realTimeForLastRun != null)
         {
-            result = run(LocalDateTime.now().plusSeconds(
+            result = run(getClockTime().plusSeconds(
                     (long)(Duration.between(LocalDateTime.now(), realTimeForLastRun).getSeconds() * speed)
             ));
         }
@@ -262,7 +262,7 @@ public abstract class Sandbox implements ISandbox {
     public boolean warmUp(Duration period)
     {
         if (parent != null) return parent.warmUp(period);
-        return warmUp(LocalDateTime.now().plus(period));
+        return warmUp(getClockTime().plus(period));
     }
     public boolean warmUp(LocalDateTime till)
     {
