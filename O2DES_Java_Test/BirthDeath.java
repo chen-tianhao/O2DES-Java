@@ -31,8 +31,8 @@ public class BirthDeath extends Sandbox {
         System.out.println(this.getClockTime() + "\tBirth (Population: #" + population + "!)");
         // Logger.info(clockTime + "\tBirth (Population: #" + population + "!)");
 
-        double nextBirthDelay = -Math.log(1 - new Random(seed).nextDouble()) / hourlyBirthRate;
-        double nextDeathDelay = -Math.log(1 - new Random(seed).nextDouble()) / hourlyDeathRate;
+        double nextBirthDelay = -Math.log(1 - new Random().nextDouble()) / hourlyBirthRate;
+        double nextDeathDelay = -Math.log(1 - new Random().nextDouble()) / hourlyDeathRate;
 
         this.schedule(new Action(this::birth), Duration.ofMillis(Math.round(nextBirthDelay * 3600000)));
         this.schedule(new Action(this::death), Duration.ofMillis(Math.round(nextDeathDelay * 3600000)));

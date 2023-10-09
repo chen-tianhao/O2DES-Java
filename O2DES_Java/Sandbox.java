@@ -107,7 +107,7 @@ public abstract class Sandbox implements ISandbox {
         }
         return headEvent;
     }
-    private LocalDateTime clockTime = LocalDateTime.of(0, 1, 1, 0, 0, 0);
+    private LocalDateTime clockTime = LocalDateTime.of(1, 1, 1, 0, 0, 0);
     public LocalDateTime getClockTime()
     {
         if (getParent() == null) return clockTime;
