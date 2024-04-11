@@ -122,6 +122,7 @@ public abstract class Sandbox implements ISandbox {
         return head.getScheduledTime();
     }
 
+    @SuppressWarnings("resource")
     public boolean run() {
         if (getParent() != null)
         {

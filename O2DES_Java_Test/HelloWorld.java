@@ -31,8 +31,9 @@ public class HelloWorld extends Sandbox {
     public static void main(String[] args) {
         // Demo 1
         System.out.println("Demo 1 - Hello world");
-        HelloWorld sim1 = new HelloWorld(2, 1);
-        sim1.warmUp(LocalDateTime.of(1, 1, 1, 0, 0, 0));
-        sim1.run(10);
+        try (HelloWorld sim1 = new HelloWorld(2, 1)) {
+            sim1.warmUp(LocalDateTime.of(1, 1, 1, 0, 0, 0));
+            sim1.run(10);
+        }
     }
 }

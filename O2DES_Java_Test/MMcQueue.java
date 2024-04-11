@@ -55,7 +55,8 @@ public class MMcQueue extends Sandbox {
     public static void main(String[] args) {
         // Demo 3
         System.out.println("Demo 3 - MMcQueue");
-        MMcQueue sim1 = new MMcQueue(1, 2, 2, 0);
-        sim1.run(Duration.ofHours(30));
+        try (MMcQueue sim1 = new MMcQueue(1, 2, 2, 0)) {
+            sim1.run(Duration.ofHours(30));
+        }
     }
 }
