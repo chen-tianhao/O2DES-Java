@@ -23,7 +23,7 @@ public class BirthDeath extends Sandbox {
         this.hourlyDeathRate = hourlyDeathRate;
         this.population = 0;
 
-        this.schedule(new Action(this::birth), Duration.ofSeconds(0));
+        this.schedule(this::birth, Duration.ofSeconds(0));
     }
 
     private void birth() {
@@ -34,8 +34,8 @@ public class BirthDeath extends Sandbox {
         double nextBirthDelay = -Math.log(1 - new Random().nextDouble()) / hourlyBirthRate;
         double nextDeathDelay = -Math.log(1 - new Random().nextDouble()) / hourlyDeathRate;
 
-        this.schedule(new Action(this::birth), Duration.ofMillis(Math.round(nextBirthDelay * 3600000)));
-        this.schedule(new Action(this::death), Duration.ofMillis(Math.round(nextDeathDelay * 3600000)));
+        this.schedule(this::birth, Duration.ofMillis(Math.round(nextBirthDelay * 3600000)));
+        this.schedule(this::death, Duration.ofMillis(Math.round(nextDeathDelay * 3600000)));
     }
 
     private void death() {

@@ -9,7 +9,7 @@ public class Event implements AutoCloseable {
     String tag;
     Sandbox owner;
     LocalDateTime scheduledTime;
-    Action action;
+    Callback callback;
 
     public Sandbox getOwner()
     {
@@ -24,19 +24,19 @@ public class Event implements AutoCloseable {
         return scheduledTime;
     }
 
-    Event(Sandbox owner, Action action, LocalDateTime scheduledTime, String tag) {
+    Event(Sandbox owner, Callback callback, LocalDateTime scheduledTime, String tag) {
         this.owner = owner;
-        this.action = action;
+        this.callback = callback;
         this.scheduledTime = scheduledTime;
         this.tag = tag;
     }
 
-    Event(Sandbox owner, Action action, LocalDateTime scheduledTime) {
-        this(owner, action, scheduledTime, null);
+    Event(Sandbox owner, Callback callback, LocalDateTime scheduledTime) {
+        this(owner, callback, scheduledTime, null);
     }
 
     public void invoke() {
-        action.invoke();
+        callback.callback();
     }
 
     @Override

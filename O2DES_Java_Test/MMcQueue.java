@@ -26,26 +26,26 @@ public class MMcQueue extends Sandbox {
         this.inQueue = 0;
         this.inService = 0;
 
-        this.schedule(new Action(this::arrive), Duration.ofSeconds(0));
+        this.schedule(this::arrive, Duration.ofSeconds(0));
     }
 
     private void arrive() {
         if (inService < capacity) {
             inService++;
             System.out.println(this.getClockTime() + "\tArrive and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
-            this.schedule(new Action(this::depart), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
+            this.schedule(this::depart, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
         } else {
             inQueue++;
             System.out.println(this.getClockTime() + "\tArrive and Join Queue (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
         }
-        this.schedule(new Action(this::arrive), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyArrivalRate * 3600000)));
+        this.schedule(this::arrive, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyArrivalRate * 3600000)));
     }
 
     private void depart() {
         if (inQueue > 0) {
             inQueue--;
             System.out.println(this.getClockTime() + "\tDepart and Start Service (In-Queue: " + inQueue + ", In-Service: " + inService + ")");
-            this.schedule(new Action(this::depart), Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
+            this.schedule(this::depart, Duration.ofMillis(Math.round(-Math.log(1 - new Random(seed).nextDouble()) / hourlyServiceRate * 3600000)));
         } else {
             inService--;
             System.out.println(this.getClockTime() + "\tDepart (In-Queue: " + inQueue + ", In-Service: " + inService + ")");

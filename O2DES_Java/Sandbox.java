@@ -64,7 +64,7 @@ public abstract class Sandbox implements ISandbox {
         this.seed = seed;
         defaultRS = new Random(seed);
     }
-
+/*
     protected void schedule(Action action, LocalDateTime clockTime, String tag)
     {
         futureEventList.add(new Event(this, action, clockTime, tag));
@@ -79,12 +79,12 @@ public abstract class Sandbox implements ISandbox {
     {
         futureEventList.add(new Event(this, action, getClockTime().plus(delay), tag));
     }
-
-    protected void schedule(Action action, Duration delay)
+ */
+    protected void schedule(Callback callback, Duration delay)
     {
-        futureEventList.add(new Event(this, action, getClockTime().plus(delay), null));
+        futureEventList.add(new Event(this, callback, getClockTime().plus(delay), null));
     }
-
+/*
     protected void schedule(Action action, String tag)
     {
         futureEventList.add(new Event(this, action, getClockTime(), tag));
@@ -94,7 +94,7 @@ public abstract class Sandbox implements ISandbox {
     {
         futureEventList.add(new Event(this, action, getClockTime(), null));
     }
-
+ */
     Event getHeadEvent() {
         Event headEvent = futureEventList.isEmpty() ? null : futureEventList.first();
         for (ISandbox child : childrenList) {
