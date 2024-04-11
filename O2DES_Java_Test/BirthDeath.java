@@ -10,14 +10,12 @@ import java.util.Random;
 // from their respective Java packages
 
 public class BirthDeath extends Sandbox {
-    private int seed;
     private double hourlyBirthRate;
     private double hourlyDeathRate;
     private int population;
 
     public BirthDeath(double hourlyBirthRate, double hourlyDeathRate, int seed) {
         super(seed);
-        this.seed = seed;
         this.hourlyBirthRate = hourlyBirthRate;
         this.hourlyDeathRate = hourlyDeathRate;
         this.population = 0;

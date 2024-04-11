@@ -3,7 +3,6 @@ package O2DES_Java_Test;
 import O2DES_Java.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Random;
 
 // You need to import Logger and other necessary classes

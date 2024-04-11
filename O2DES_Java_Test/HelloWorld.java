@@ -1,6 +1,5 @@
 package O2DES_Java_Test;
 
-import O2DES_Java.Action;
 import O2DES_Java.Sandbox;
 
 import java.time.Duration;
