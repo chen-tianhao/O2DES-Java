@@ -84,15 +84,15 @@ public abstract class Sandbox implements ISandbox {
     {
         futureEventList.add(new Event(this, callback, getClockTime().plus(delay)));
     }
+
+    protected void schedule(Callback callback)
+    {
+        futureEventList.add(new Event(this, callback, getClockTime()));
+    }
 /*
     protected void schedule(Action action, String tag)
     {
         futureEventList.add(new Event(this, action, getClockTime(), tag));
-    }
-
-    protected void schedule(Action action)
-    {
-        futureEventList.add(new Event(this, action, getClockTime(), null));
     }
  */
     Event getHeadEvent() {
