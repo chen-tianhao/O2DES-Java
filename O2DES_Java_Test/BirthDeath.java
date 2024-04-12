@@ -23,7 +23,7 @@ public class BirthDeath extends Sandbox {
         this.schedule(this::birth, Duration.ofSeconds(0));
     }
 
-    private void birth() {
+    private void birth(Object... paras) {
         population++;
         System.out.println(this.getClockTime() + "\tBirth (Population: #" + population + "!)");
         // Logger.info(clockTime + "\tBirth (Population: #" + population + "!)");

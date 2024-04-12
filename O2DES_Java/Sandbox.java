@@ -82,7 +82,7 @@ public abstract class Sandbox implements ISandbox {
  */
     protected void schedule(Callback callback, Duration delay)
     {
-        futureEventList.add(new Event(this, callback, getClockTime().plus(delay), null));
+        futureEventList.add(new Event(this, callback, getClockTime().plus(delay)));
     }
 /*
     protected void schedule(Action action, String tag)
